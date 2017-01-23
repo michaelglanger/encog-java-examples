@@ -77,7 +77,7 @@ public class XORConst {
 			System.out
 					.println("Epoch #" + epoch + " Error:" + train.getError());
 			epoch++;
-		} while(train.getError() > 0.01);
+		} while(train.getError() > 0.002);
  
 		// test the neural network
 		System.out.println("Neural Network Results:");

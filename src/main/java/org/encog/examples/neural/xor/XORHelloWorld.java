@@ -26,13 +26,19 @@ package org.encog.examples.neural.xor;
 import org.encog.Encog;
 import org.encog.engine.network.activation.ActivationReLU;
 import org.encog.engine.network.activation.ActivationSigmoid;
+import org.encog.ensemble.training.LevenbergMarquardtFactory;
 import org.encog.ml.data.MLData;
 import org.encog.ml.data.MLDataPair;
 import org.encog.ml.data.MLDataSet;
 import org.encog.ml.data.basic.BasicMLDataSet;
 import org.encog.neural.networks.BasicNetwork;
 import org.encog.neural.networks.layers.BasicLayer;
+import org.encog.neural.networks.training.lma.LevenbergMarquardtTraining;
+import org.encog.neural.networks.training.propagation.manhattan.ManhattanPropagation;
+import org.encog.neural.networks.training.propagation.quick.QuickPropagation;
+import org.encog.neural.networks.training.propagation.resilient.RPROPType;
 import org.encog.neural.networks.training.propagation.resilient.ResilientPropagation;
+import org.encog.neural.networks.training.propagation.scg.ScaledConjugateGradient;
 
 /**
  * XOR: This example is essentially the "Hello World" of neural network
@@ -77,15 +83,31 @@ public class XORHelloWorld {
 		MLDataSet trainingSet = new BasicMLDataSet(XOR_INPUT, XOR_IDEAL);
 		
 		// train the neural network
-		final ResilientPropagation train = new ResilientPropagation(network, trainingSet);
+		//ResilientPropagation train = new ResilientPropagation(network, trainingSet);
+		//final ManhattanPropagation train = new ManhattanPropagation(network, trainingSet, 0.00005);
+		//QuickPropagation train = new QuickPropagation(network, trainingSet, 2.0);
+		//train.setRPROPType(RPROPType.iRPROPm);
+		//ScaledConjugateGradient train = new ScaledConjugateGradient(network, trainingSet);
+		LevenbergMarquardtTraining train = new LevenbergMarquardtTraining(network, trainingSet);
 
 		int epoch = 1;
 
 		do {
+
+			if (epoch >= 1000) {
+				epoch = 1;
+				network.reset();
+				//trainingSet = new BasicMLDataSet(XOR_INPUT, XOR_IDEAL);
+				//train = new QuickPropagation(network, trainingSet, 2.0);
+				//train = new ResilientPropagation(network, trainingSet);
+				//train = new ScaledConjugateGradient(network, trainingSet);
+				train = new LevenbergMarquardtTraining(network, trainingSet);
+				//train.setRPROPType(RPROPType.iRPROPm);
+			}
 			train.iteration();
 			System.out.println("Epoch #" + epoch + " Error:" + train.getError());
 			epoch++;
-		} while(train.getError() > 0.01);
+		} while(train.getError() > 0.001);
 		train.finishTraining();
 
 		// test the neural network
@@ -93,7 +115,7 @@ public class XORHelloWorld {
 		for(MLDataPair pair: trainingSet ) {
 			final MLData output = network.compute(pair.getInput());
 			System.out.println(pair.getInput().getData(0) + "," + pair.getInput().getData(1)
-					+ ", actual=" + output.getData(0) + ",ideal=" + pair.getIdeal().getData(0));
+					+ ", actual=" + String.format("%.2f", output.getData(0)) + ",ideal=" + pair.getIdeal().getData(0));
 		}
 		
 		Encog.getInstance().shutdown();
